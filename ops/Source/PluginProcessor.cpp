@@ -11,10 +11,24 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+
+static MidiBuffer filterMidiMessagesForChannel( const MidiBuffer& input, int channel )
+{
+	MidiMessage msg;
+	int samplePosition;
+	MidiBuffer output;
+
+	for( MidiBuffer::Iterator it( input ); it.getNextEvent( msg, samplePosition );)
+		if( msg.getChannel() == channel ) output.addEvent( msg, samplePosition );
+
+	return output;
+}
+
 //==============================================================================
-OpsAudioProcessor::OpsAudioProcessor()
+OpsAudioProcessor::OpsAudioProcessor() :
+	max_voices( 8 ),
 #ifndef JucePlugin_PreferredChannelConfigurations
-	: AudioProcessor( BusesProperties()
+	AudioProcessor( BusesProperties()
 #if ! JucePlugin_IsMidiEffect
 #if ! JucePlugin_IsSynth
 		.withInput( "Input", AudioChannelSet::stereo(), true )
@@ -24,6 +38,19 @@ OpsAudioProcessor::OpsAudioProcessor()
 	)
 #endif
 {
+	addParameter( freq_ratio = new AudioParameterFloat( "freq ratio", "freq ratio", 0.1, 8.0f, 1.0f) );
+	addParameter( vertex_count = new AudioParameterFloat( "vertex count", "vertex count", 2.0f, 32.0f, 2.0f) );
+	addParameter( rotation_speed = new AudioParameterFloat( "rotation speed", "rotation speed", 0.0f, 20.0f * juce::MathConstants<float>::pi , 0.0f) );
+	addParameter( collapse = new AudioParameterFloat( "vertex count", "vertex count", 0.0f, 1.0f, 0.0f) );
+	addParameter( expand = new AudioParameterFloat( "vertex count", "vertex count", 0.0f, 1.0f, 0.0f) );
+
+	voice_parameters = std::make_unique<VoiceParameters>();
+	synth = std::make_unique<Synthesiser>();
+	for( size_t i = 0; i < max_voices; ++i)
+	{
+		synth->addVoice( new PolygonSynthesisVoice(voice_parameters.get()) );
+	}
+	synth->addSound( new PolygonSynthesisSound() );
 }
 
 OpsAudioProcessor::~OpsAudioProcessor()
@@ -93,10 +120,9 @@ void OpsAudioProcessor::changeProgramName( [[maybe_unused]] int index, [[maybe_u
 }
 
 //==============================================================================
-void OpsAudioProcessor::prepareToPlay( [[maybe_unused]] double sampleRate, [[maybe_unused]] int samplesPerBlock )
+void OpsAudioProcessor::prepareToPlay( double sampleRate, [[maybe_unused]] int samplesPerBlock )
 {
-	// Use this method as the place to do any pre-playback
-	// initialisation that you need..
+	synth->setCurrentPlaybackSampleRate( sampleRate );
 }
 
 void OpsAudioProcessor::releaseResources()
@@ -131,6 +157,12 @@ bool OpsAudioProcessor::isBusesLayoutSupported( const BusesLayout& layouts ) con
 
 void OpsAudioProcessor::processBlock( AudioBuffer<float>& buffer, [[maybe_unused]] MidiBuffer& midiMessages )
 {
+	voice_parameters->collapse = collapse->get();
+	voice_parameters->expand = expand->get();
+	voice_parameters->freq_ratio = freq_ratio->get();
+	voice_parameters->rotation_speed = rotation_speed->get();
+	voice_parameters->vertex_count = vertex_count->get();
+
 	ScopedNoDenormals noDenormals;
 	auto totalNumInputChannels = getTotalNumInputChannels();
 	auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -144,18 +176,11 @@ void OpsAudioProcessor::processBlock( AudioBuffer<float>& buffer, [[maybe_unused
 	for( auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i )
 		buffer.clear( i, 0, buffer.getNumSamples() );
 
-	// This is the place where you'd normally do the guts of your plugin's
-	// audio processing...
-	// Make sure to reset the state if your inner loop is processing
-	// the samples and the outer loop is handling the channels.
-	// Alternatively, you can process the samples with the channels
-	// interleaved by keeping the same state.
-	for( int channel = 0; channel < totalNumInputChannels; ++channel )
-	{
-		[[maybe_unused]] auto* channelData = buffer.getWritePointer( channel );
 
-		// ..do something to the data...
-	}
+	auto midiChannelBuffer = filterMidiMessagesForChannel( midiMessages, 1 );
+	auto audioBusBuffer = getBusBuffer( buffer, false, 0 );
+
+	synth->renderNextBlock( audioBusBuffer, midiChannelBuffer, 0, audioBusBuffer.getNumSamples() );
 }
 
 //==============================================================================
@@ -166,7 +191,7 @@ bool OpsAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* OpsAudioProcessor::createEditor()
 {
-	return new OpsAudioProcessorEditor( *this );
+	return new GenericAudioProcessorEditor( *this );
 }
 
 //==============================================================================
