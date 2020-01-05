@@ -61,16 +61,33 @@ void PolygonSynthesisVoice::controllerMoved( [[maybe_unused]] int controllerNumb
 
 void PolygonSynthesisVoice::renderNextBlock( AudioBuffer<float>& outputBuffer, int startSample, int numSamples )
 {
+	if( outputBuffer.getNumChannels() < 1 )
+	{
+		return;
+	}
+
+	polygon.Circularize();
+	polygon.Rotate( 0.0 );
+	polygon.SetDrawPercentage(voice_parameters->vertex_count / double(polygon.lines.size()));
+
 	if( angleDelta != 0.0 )
 	{
 		if( tailOff > 0.0 ) // [7]
 		{
 			while( --numSamples >= 0 )
 			{
-				auto currentSample = ( float )( std::sin( currentAngle ) * level * tailOff );
+				ops::Point sample_point = polygon.Sample( currentAngle );
+				auto current_sample_l = float( sample_point.x * level * tailOff);
+				auto current_sample_r = float( sample_point.y * level * tailOff);
 
-				for( auto i = outputBuffer.getNumChannels(); --i >= 0;)
-					outputBuffer.addSample( i, startSample, currentSample );
+				if( outputBuffer.getNumChannels() > 1 )
+				{
+					outputBuffer.addSample( 0, startSample, current_sample_l );
+					outputBuffer.addSample( 1, startSample, current_sample_r );
+				}
+				else{
+					outputBuffer.addSample( 0, startSample, current_sample_l );
+				}
 
 				currentAngle += angleDelta;
 				++startSample;
@@ -90,12 +107,22 @@ void PolygonSynthesisVoice::renderNextBlock( AudioBuffer<float>& outputBuffer, i
 		{
 			while( --numSamples >= 0 ) // [6]
 			{
-				auto currentSample = ( float )( std::sin( currentAngle ) * level );
 
-				for( auto i = outputBuffer.getNumChannels(); --i >= 0;)
-					outputBuffer.addSample( i, startSample, currentSample );
+				ops::Point sample_point = polygon.Sample( currentAngle );
+				auto current_sample_l = float( sample_point.x * level  );
+				auto current_sample_r = float( sample_point.y * level  );
+
+				if( outputBuffer.getNumChannels() > 1 )
+				{
+					outputBuffer.addSample( 0, startSample, current_sample_l );
+					outputBuffer.addSample( 1, startSample, current_sample_r );
+				}
+				else{
+					outputBuffer.addSample( 0, startSample, current_sample_l );
+				}
 
 				currentAngle += angleDelta;
+				currentAngle = currentAngle > juce::MathConstants<double>::twoPi ? currentAngle - juce::MathConstants<double>::twoPi : currentAngle;
 				++startSample;
 			}
 		}

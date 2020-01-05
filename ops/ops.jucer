@@ -7,6 +7,8 @@
               cppLanguageStandard="latest" reportAppUsage="0" displaySplashScreen="0">
   <MAINGROUP id="bsYepm" name="ops">
     <GROUP id="{238CE3FD-613F-A56F-7CC3-2F07FB9E3BB6}" name="Source">
+      <FILE id="KG9W6d" name="Polygon.cpp" compile="1" resource="0" file="Source/Polygon.cpp"/>
+      <FILE id="Dh4NOn" name="Polygon.h" compile="0" resource="0" file="Source/Polygon.h"/>
       <FILE id="kfeMCf" name="PolygonSynthesisVoice.cpp" compile="1" resource="0"
             file="Source/PolygonSynthesisVoice.cpp"/>
       <FILE id="fuWO38" name="PolygonSynthesisVoice.h" compile="0" resource="0"

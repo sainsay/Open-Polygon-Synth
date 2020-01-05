@@ -38,11 +38,11 @@ OpsAudioProcessor::OpsAudioProcessor() :
 	)
 #endif
 {
-	addParameter( freq_ratio = new AudioParameterFloat( "freq ratio", "freq ratio", 0.1, 8.0f, 1.0f) );
+	addParameter( freq_ratio = new AudioParameterFloat( "freq ratio", "freq ratio", 0.1f, 8.0f, 1.0f) );
 	addParameter( vertex_count = new AudioParameterFloat( "vertex count", "vertex count", 2.0f, 32.0f, 2.0f) );
 	addParameter( rotation_speed = new AudioParameterFloat( "rotation speed", "rotation speed", 0.0f, 20.0f * juce::MathConstants<float>::pi , 0.0f) );
-	addParameter( collapse = new AudioParameterFloat( "vertex count", "vertex count", 0.0f, 1.0f, 0.0f) );
-	addParameter( expand = new AudioParameterFloat( "vertex count", "vertex count", 0.0f, 1.0f, 0.0f) );
+	addParameter( collapse = new AudioParameterFloat( "collapse", "collapse", 0.0f, 1.0f, 0.0f) );
+	addParameter( expand = new AudioParameterFloat( "expand", "expand", 0.0f, 1.0f, 0.0f) );
 
 	voice_parameters = std::make_unique<VoiceParameters>();
 	synth = std::make_unique<Synthesiser>();

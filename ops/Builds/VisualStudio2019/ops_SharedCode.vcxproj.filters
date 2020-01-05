@@ -433,6 +433,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Polygon.cpp">
+      <Filter>ops\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\PolygonSynthesisVoice.cpp">
       <Filter>ops\Source</Filter>
     </ClCompile>
@@ -2433,6 +2436,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\Polygon.h">
+      <Filter>ops\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\PolygonSynthesisVoice.h">
       <Filter>ops\Source</Filter>
     </ClInclude>
