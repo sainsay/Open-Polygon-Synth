@@ -55,12 +55,12 @@ void Polygon::Circularize()
 	{
 		auto x = std::cos( rot );
 		auto y = std::sin( rot );
-		lines[int( loop_amount ) + 1].a = { x,y };
+		lines[int( loop_amount )].a = { x,y };
 		rot -= step_size * frac;
 		x = std::cos( rot );
 		y = std::sin( rot );
-		lines[int( loop_amount ) + 1].a = { x,y };
-		draw_lenght += ( lines[int( loop_amount ) + 1].a - lines[int( loop_amount ) + 1].b ).Lenght();
+		lines[int( loop_amount )].b = { x,y };
+		draw_lenght += ( lines[int( loop_amount )].a - lines[int( loop_amount )].b ).Lenght();
 	}
 }
 
@@ -68,26 +68,46 @@ void Polygon::Rotate( [[maybe_unused]] const double amount )
 {
 }
 
-const ops::Point Polygon::Sample( const double rotation ) const
+void Polygon::Collapse( const float value )
+{
+	float amount = std::abs( value - 1.0f );
+	int to_draw = int(std::ceil( double( lines.size() ) * draw_percentage ));
+	for( size_t i = 0; i < to_draw; i++ )
+	{
+		lines[i].a.x *= amount;
+		lines[i].a.y *= amount;
+	}
+}
+
+void Polygon::Begin()
+{
+}
+
+const ops::Point Polygon::Sample( const double rotation )
 {
 	auto sample_point = draw_lenght * ( rotation / juce::MathConstants<double>::twoPi );
-	sample_point *= sample_point; // gets rid of many sqrt()
-	auto to_draw = std::ceil( double( lines.size() ) * draw_percentage);
+	int to_draw = int(std::ceil( double( lines.size() ) * draw_percentage));
+	
 	int i = 0;
-	double len2 = 0.0;
-	len2 = ( lines[i].a - lines[i].b ).Lenght2();
-	for( ; sample_point > len2; i++ )
+	do
 	{
-		if( i >= to_draw )
+		double len = ( lines[i].a - lines[i].b ).Lenght();
+		if( sample_point > len )
 		{
-			i = 0;
+			sample_point -= len;
+			i++;
+			if( i >= (to_draw) )
+			{
+				i = 0;
+			}
 		}
-		len2 = ( lines[i].a - lines[i].b ).Lenght2();
-		sample_point -= len2;
-	}
+		else
+		{
+			break;
+		}
+	} while( true );
 	ops::Line sample_line = lines[i];
-	auto frac = sample_point / ( lines[i].a - lines[i].b ).Lenght2();
-
+	auto frac = sample_point / ( lines[i].a - lines[i].b ).Lenght();
 	// lerp to point
 	ops::Point result = { std::lerp( sample_line.a.x, sample_line.b.x, frac ), std::lerp( sample_line.a.y, sample_line.b.y, frac ) };
 	return result;

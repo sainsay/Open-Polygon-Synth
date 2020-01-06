@@ -34,6 +34,11 @@ namespace ops
     using Line = struct{ Point a; Point b; };
 }
 
+struct PolygonState
+{
+    int index;
+    double lenght;
+};
 
 class Polygon
 {
@@ -43,8 +48,9 @@ public:
     void SetDrawPercentage( const double percentage );
     void Circularize();
     void Rotate( const double amount);
-    const ops::Point Sample( const double rotation ) const;
-
+    void Collapse( const float amount );
+    void Begin();
+    const ops::Point Sample( const double step );
     ~Polygon();
     std::vector<ops::Line> lines;
 
