@@ -49,6 +49,8 @@ public:
     void Circularize();
     void Rotate( const double amount);
     void Collapse( const float amount );
+    void CalcLength();
+
     void Begin();
     const ops::Point Sample( const double step );
     ~Polygon();

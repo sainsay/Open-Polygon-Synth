@@ -37,7 +37,7 @@ void Polygon::Circularize()
 	auto to_draw = double( arr_size ) * draw_percentage;
 	double loop_amount;
 	double frac = std::modf( to_draw, &loop_amount );
-	draw_lenght = 0.0;
+	
 	auto rot = juce::MathConstants<double>::twoPi;
 	auto step_size = juce::MathConstants<double>::twoPi / to_draw;
 	for( int i = 0; i < int( loop_amount ); ++i ){
@@ -48,8 +48,6 @@ void Polygon::Circularize()
 		x = std::cos( rot );
 		y = std::sin( rot );
 		lines[i].b = { x,y };
-		draw_lenght += ( lines[i].a - lines[i].b ).Lenght();
-
 	}
 	if( frac > 0.0 )
 	{
@@ -60,7 +58,6 @@ void Polygon::Circularize()
 		x = std::cos( rot );
 		y = std::sin( rot );
 		lines[int( loop_amount )].b = { x,y };
-		draw_lenght += ( lines[int( loop_amount )].a - lines[int( loop_amount )].b ).Lenght();
 	}
 }
 
@@ -76,6 +73,16 @@ void Polygon::Collapse( const float value )
 	{
 		lines[i].a.x *= amount;
 		lines[i].a.y *= amount;
+	}
+}
+
+void Polygon::CalcLength()
+{
+	draw_lenght = 0.0;
+	int to_draw = int( std::ceil( double( lines.size() ) * draw_percentage ) );
+	for( size_t i = 0; i < to_draw; i++ )
+	{
+		draw_lenght += ( lines[i].a - lines[i].b ).Lenght();
 	}
 }
 
