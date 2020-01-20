@@ -74,6 +74,7 @@ void PolygonSynthesisVoice::renderNextBlock( AudioBuffer<float>& outputBuffer, i
 
 	if( angleDelta != 0.0 )
 	{
+		auto corrected_delta = angleDelta * voice_parameters->freq_ratio;
 		if( tailOff > 0.0 ) // [7]
 		{
 			while( --numSamples >= 0 )
@@ -91,7 +92,8 @@ void PolygonSynthesisVoice::renderNextBlock( AudioBuffer<float>& outputBuffer, i
 					outputBuffer.addSample( 0, startSample, current_sample_l );
 				}
 
-				currentAngle += angleDelta;
+				currentAngle += corrected_delta;
+				currentAngle = currentAngle > juce::MathConstants<double>::twoPi ? currentAngle - juce::MathConstants<double>::twoPi : currentAngle;
 				++startSample;
 
 				tailOff *= 0.99; // [8]
@@ -123,7 +125,7 @@ void PolygonSynthesisVoice::renderNextBlock( AudioBuffer<float>& outputBuffer, i
 					outputBuffer.addSample( 0, startSample, current_sample_l );
 				}
 
-				currentAngle += angleDelta;
+				currentAngle += corrected_delta;
 				currentAngle = currentAngle > juce::MathConstants<double>::twoPi ? currentAngle - juce::MathConstants<double>::twoPi : currentAngle;
 				++startSample;
 			}

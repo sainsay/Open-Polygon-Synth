@@ -38,7 +38,9 @@ OpsAudioProcessor::OpsAudioProcessor() :
 	)
 #endif
 {
-	addParameter( freq_ratio = new AudioParameterFloat( "freq ratio", "freq ratio", 0.1f, 8.0f, 1.0f) );
+	auto freq_range = NormalisableRange<float>( 0.125f, 8.0f );
+	freq_range.setSkewForCentre( 1.0f );
+	addParameter( freq_ratio = new AudioParameterFloat( "freq ratio", "freq ratio", freq_range, 1.0f) );
 	addParameter( vertex_count = new AudioParameterFloat( "vertex count", "vertex count", 2.0f, 32.0f, 2.0f) );
 	addParameter( rotation_speed = new AudioParameterFloat( "rotation speed", "rotation speed", 0.0f, 20.0f * juce::MathConstants<float>::pi , 0.0f) );
 	addParameter( collapse = new AudioParameterFloat( "collapse", "collapse", 0.0f, 1.0f, 0.0f) );
