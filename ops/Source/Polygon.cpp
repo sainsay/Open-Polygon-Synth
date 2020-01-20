@@ -124,7 +124,17 @@ Polygon::~Polygon()
 {
 }
 
-ops::Point ops::operator-( const ops::Point a, const ops::Point b )
+ops::Point ops::operator-( const ops::Point& a, const ops::Point& b )
 {
 	return { a.x - b.x, a.y - b.y };
+}
+
+ops::Point ops::operator*( const ops::Point& a, const ops::Mat22& b )
+{
+	return { a.x * b.v[0] + a.y * b.v[1], a.x * b.v[2] + a.y * b.v[3] };
+}
+
+ops::Point ops::operator*( const ops::Mat22& a, const ops::Point& b )
+{
+	return b*a;
 }
