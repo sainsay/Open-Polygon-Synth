@@ -68,8 +68,10 @@ void Polygon::Circularize()
 void Polygon::Rotate( [[maybe_unused]] const double amount )
 {
 	rotation += amount;
-	double temp;
-	rotation = std::modf( rotation, &temp );
+	if( rotation >= juce::MathConstants<double>::twoPi )
+	{
+		rotation -= juce::MathConstants<double>::twoPi;
+	}
 
 	auto rot_mat = ops::Mat22( rotation );
 	int to_rot = int( std::ceil( double( lines.size() ) * draw_percentage ) );
