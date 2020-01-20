@@ -14,14 +14,18 @@
 
 Polygon::Polygon() :
 	draw_percentage( 1.0 ),
-	draw_lenght( 0.0 )
+	draw_lenght( 0.0 ),
+	rotation(0.0),
+	index(0)
 {
 	lines.resize( 32 );
 }
 
 Polygon::Polygon( const uint8 max_line_count ) :
 	draw_percentage( 1.0 ),
-	draw_lenght( 0.0 )
+	draw_lenght( 0.0 ),
+	rotation(0.0),
+	index(0)
 {
 	lines.resize( max_line_count );
 }
@@ -63,6 +67,18 @@ void Polygon::Circularize()
 
 void Polygon::Rotate( [[maybe_unused]] const double amount )
 {
+	rotation += amount;
+	double temp;
+	rotation = std::modf( rotation, &temp );
+
+	auto rot_mat = ops::Mat22( rotation );
+	int to_rot = int( std::ceil( double( lines.size() ) * draw_percentage ) );
+
+	for( int i = 0; i < to_rot; ++i )
+	{
+		lines[i].a = lines[i].a * rot_mat;
+		lines[i].b = lines[i].b * rot_mat;
+	}
 }
 
 void Polygon::Collapse( const float value )
@@ -90,9 +106,9 @@ void Polygon::Begin()
 {
 }
 
-const ops::Point Polygon::Sample( const double rotation )
+const ops::Point Polygon::Sample( const double sample_rotation )
 {
-	auto sample_point = draw_lenght * ( rotation / juce::MathConstants<double>::twoPi );
+	auto sample_point = draw_lenght * ( sample_rotation / juce::MathConstants<double>::twoPi );
 	int to_draw = int(std::ceil( double( lines.size() ) * draw_percentage));
 	
 	int i = 0;

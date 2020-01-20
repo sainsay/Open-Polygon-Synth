@@ -35,6 +35,8 @@ namespace ops
 
     // row major
     struct Mat22{
+        Mat22() = default;
+
         Mat22( const double rot ){
             v[0] = cos( rot );
             v[1] = -sin( rot );
@@ -47,11 +49,8 @@ namespace ops
     Point operator* ( const Mat22& a, const Point& b );
 }
 
-struct PolygonState
+struct GlobalPolygonState
 {
-    int index;
-    double lenght;
-    double rotation;
 };
 
 class Polygon
@@ -71,6 +70,12 @@ public:
     std::vector<ops::Line> lines;
 
 private:
+
     double draw_percentage;
     double draw_lenght;
+    double rotation;
+    int index;
+
+
+
 };

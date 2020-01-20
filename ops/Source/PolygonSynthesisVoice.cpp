@@ -67,7 +67,7 @@ void PolygonSynthesisVoice::renderNextBlock( AudioBuffer<float>& outputBuffer, i
 	}
 
 	polygon.Circularize();
-	polygon.Rotate( 0.0 );
+	polygon.Rotate( voice_parameters->rotation_speed / getSampleRate() );
 	polygon.Collapse( voice_parameters->collapse );
 	polygon.CalcLength();
 	polygon.SetDrawPercentage(voice_parameters->vertex_count / double(polygon.lines.size()));
