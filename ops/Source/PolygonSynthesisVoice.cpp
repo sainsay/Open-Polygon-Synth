@@ -66,10 +66,10 @@ void PolygonSynthesisVoice::renderNextBlock( AudioBuffer<float>& outputBuffer, i
 		return;
 	}
 
-	polygon.Circularize();
-	polygon.Rotate( voice_parameters->rotation_speed / getSampleRate() * numSamples );
-	polygon.Collapse( voice_parameters->collapse );
-	polygon.CalcLength();
+	//polygon.Circularize();
+	//polygon.Rotate( voice_parameters->rotation_speed / getSampleRate() * numSamples );
+	//polygon.Collapse( voice_parameters->collapse );
+	//polygon.CalcLength();
 	polygon.SetDrawPercentage(voice_parameters->vertex_count / double(polygon.lines.size()));
 
 	if( angleDelta != 0.0 )
@@ -79,7 +79,8 @@ void PolygonSynthesisVoice::renderNextBlock( AudioBuffer<float>& outputBuffer, i
 		{
 			while( --numSamples >= 0 )
 			{
-				ops::Point sample_point = polygon.Sample( currentAngle );
+
+				ops::Point sample_point = polygon.Sample( currentAngle, voice_parameters->rotation_speed / getSampleRate(), voice_parameters->collapse, voice_parameters->expand);
 				auto current_sample_l = float( sample_point.x * level * tailOff);
 				auto current_sample_r = float( sample_point.y * level * tailOff);
 
@@ -112,7 +113,7 @@ void PolygonSynthesisVoice::renderNextBlock( AudioBuffer<float>& outputBuffer, i
 			while( --numSamples >= 0 ) // [6]
 			{
 
-				ops::Point sample_point = polygon.Sample( currentAngle );
+				ops::Point sample_point = polygon.Sample( currentAngle, voice_parameters->rotation_speed / getSampleRate(), voice_parameters->collapse, voice_parameters->expand );
 				auto current_sample_l = float( sample_point.x * level  );
 				auto current_sample_r = float( sample_point.y * level  );
 
