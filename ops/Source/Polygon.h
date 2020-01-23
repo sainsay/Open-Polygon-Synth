@@ -61,13 +61,6 @@ public:
 	Polygon();
 	Polygon( const uint8 max_line_count );
 	void SetDrawPercentage( const double percentage );
-	void Circularize();
-	void Rotate( const double amount );
-	void Collapse( const float amount );
-	void CalcLength();
-
-	void Begin();
-	const ops::Point Sample( const double step );
 	const ops::Point Sample( const double step, const double rot_step, const float collapse, const float expand );
 	~Polygon();
 	std::vector<ops::Line> lines;
@@ -77,7 +70,6 @@ private:
 	double draw_percentage;
 	double draw_lenght;
 	double rotation;
-	int index;
 
 
 
