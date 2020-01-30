@@ -1,9 +1,9 @@
 /*
   ==============================================================================
 
-    PolygonSynthesesVoice.cpp
-    Created: 2 Jan 2020 6:07:28pm
-    Author:  happy
+	PolygonSynthesesVoice.cpp
+	Created: 2 Jan 2020 6:07:28pm
+	Author:  happy
 
   ==============================================================================
 */
@@ -27,6 +27,7 @@ bool PolygonSynthesisVoice::canPlaySound( SynthesiserSound* sound_ptr )
 
 void PolygonSynthesisVoice::startNote( int midiNoteNumber, float velocity, [[maybe_unused]] SynthesiserSound* sound, [[maybe_unused]] int currentPitchWheelPosition )
 {
+	temp_env.ResetState();
 	currentAngle = 0.0;
 	level = velocity * 0.15;
 	tailOff = 0.0;
@@ -37,18 +38,9 @@ void PolygonSynthesisVoice::startNote( int midiNoteNumber, float velocity, [[may
 	angleDelta = cyclesPerSample * 2.0 * MathConstants<double>::pi;
 }
 
-void PolygonSynthesisVoice::stopNote( [[maybe_unused]] float velocity, bool allowTailOff )
+void PolygonSynthesisVoice::stopNote( [[maybe_unused]] float velocity, [[maybe_unused]] bool allowTailOff )
 {
-	if( allowTailOff )
-	{
-		if( tailOff == 0.0 )
-			tailOff = 1.0;
-	}
-	else
-	{
-		clearCurrentNote();
-		angleDelta = 0.0;
-	}
+	temp_env.SetState( env::AttRelEnv::State::Release );
 }
 
 void PolygonSynthesisVoice::pitchWheelMoved( [[maybe_unused]] int newPitchWheelValue )
@@ -66,70 +58,34 @@ void PolygonSynthesisVoice::renderNextBlock( AudioBuffer<float>& outputBuffer, i
 		return;
 	}
 
-	//polygon.Circularize();
-	//polygon.Rotate( voice_parameters->rotation_speed / getSampleRate() * numSamples );
-	//polygon.Collapse( voice_parameters->collapse );
-	//polygon.CalcLength();
-	polygon.SetDrawPercentage(voice_parameters->vertex_count / double(polygon.lines.size()));
+	polygon.SetDrawPercentage( voice_parameters->vertex_count / double( polygon.lines.size() ) );
 
 	if( angleDelta != 0.0 )
 	{
 		auto corrected_delta = angleDelta * voice_parameters->freq_ratio;
-		if( tailOff > 0.0 ) // [7]
+
+		while( --numSamples >= 0 )
 		{
-			while( --numSamples >= 0 )
+			temp_env.Update( 1.0 / getSampleRate() );
+			float amp = temp_env.Sample();
+
+			ops::Point sample_point = polygon.Sample( currentAngle, voice_parameters->rotation_speed / getSampleRate(), voice_parameters->collapse, voice_parameters->expand );
+			auto current_sample_l = float( sample_point.x * level * amp );
+			auto current_sample_r = float( sample_point.y * level * amp );
+
+			if( outputBuffer.getNumChannels() > 1 )
 			{
-
-				ops::Point sample_point = polygon.Sample( currentAngle, voice_parameters->rotation_speed / getSampleRate(), voice_parameters->collapse, voice_parameters->expand);
-				auto current_sample_l = float( sample_point.x * level * tailOff);
-				auto current_sample_r = float( sample_point.y * level * tailOff);
-
-				if( outputBuffer.getNumChannels() > 1 )
-				{
-					outputBuffer.addSample( 0, startSample, current_sample_l );
-					outputBuffer.addSample( 1, startSample, current_sample_r );
-				}
-				else{
-					outputBuffer.addSample( 0, startSample, current_sample_l );
-				}
-
-				currentAngle += corrected_delta;
-				currentAngle = currentAngle > juce::MathConstants<double>::twoPi ? currentAngle - juce::MathConstants<double>::twoPi : currentAngle;
-				++startSample;
-
-				tailOff *= 0.99; // [8]
-
-				if( tailOff <= 0.005 )
-				{
-					clearCurrentNote(); // [9]
-
-					angleDelta = 0.0;
-					break;
-				}
+				outputBuffer.addSample( 0, startSample, current_sample_l );
+				outputBuffer.addSample( 1, startSample, current_sample_r );
 			}
-		}
-		else
-		{
-			while( --numSamples >= 0 ) // [6]
-			{
-
-				ops::Point sample_point = polygon.Sample( currentAngle, voice_parameters->rotation_speed / getSampleRate(), voice_parameters->collapse, voice_parameters->expand );
-				auto current_sample_l = float( sample_point.x * level  );
-				auto current_sample_r = float( sample_point.y * level  );
-
-				if( outputBuffer.getNumChannels() > 1 )
-				{
-					outputBuffer.addSample( 0, startSample, current_sample_l );
-					outputBuffer.addSample( 1, startSample, current_sample_r );
-				}
-				else{
-					outputBuffer.addSample( 0, startSample, current_sample_l );
-				}
-
-				currentAngle += corrected_delta;
-				currentAngle = currentAngle > juce::MathConstants<double>::twoPi ? currentAngle - juce::MathConstants<double>::twoPi : currentAngle;
-				++startSample;
+			else{
+				outputBuffer.addSample( 0, startSample, current_sample_l );
 			}
+
+			currentAngle += corrected_delta;
+			currentAngle = currentAngle > juce::MathConstants<double>::twoPi ? currentAngle - juce::MathConstants<double>::twoPi : currentAngle;
+			++startSample;
+
 		}
 	}
 }

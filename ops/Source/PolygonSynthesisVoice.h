@@ -10,6 +10,7 @@
 
 #pragma once
 #include "Polygon.h"
+#include "ModulationSources.h"
 
 
 struct VoiceParameters{
@@ -59,6 +60,7 @@ private:
 	double currentAngle = 0.0, angleDelta = 0.0, level = 0.0, tailOff = 0.0;
 	VoiceParameters* voice_parameters;
 	Polygon polygon;
+	env::AttRelEnv temp_env;
 };
 
 
